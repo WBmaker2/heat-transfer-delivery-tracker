@@ -36,5 +36,7 @@ test("removes the starter preview and keeps the educational content wired", asyn
   assert.match(styles, /@media \(max-width:700px\)/); assert.match(styles, /temperature-table-cards/); assert.match(styles, /prefers-reduced-motion/);
   assert.doesNotMatch(workbench, /slice\(0, 2\)/); assert.match(workbench, /edgeEndpointIds/); assert.match(table, /temperature-table-cards/);
   assert.match(dialog, /onKeyDown/); assert.match(dialog, /Escape/); assert.match(dialog, /focus\(\)/);
+  const flow = await readFile(new URL("../src/features/ScenarioFlow.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(flow, /AuditScenarioFlow|auditStations/); assert.match(flow, /frameDirectionAnswers/);
   await assert.rejects(readFile(new URL("../app/_sites-preview/SkeletonPreview.tsx", templateRoot)));
 });

@@ -36,15 +36,6 @@ export type Evidence = {
   detail: string;
 };
 
-export type AuditStation = {
-  id: string;
-  title: string;
-  bodyIds: [string, string];
-  direction: string;
-  mode: HeatTransferMode;
-  requiredEvidenceIds: string[];
-};
-
 export type ThermalScenario = {
   id: string;
   title: string;
@@ -56,12 +47,10 @@ export type ThermalScenario = {
   bodies: ThermalBody[];
   frames: ThermalFrame[];
   primaryModes: HeatTransferMode[];
-  acceptedPredictions: string[];
-  acceptedFinalDirections: string[];
+  predictionFrameIndex: number;
   requiredEvidenceIds: string[];
   evidence: Evidence[];
   limitationText: string;
-  auditStations?: AuditStation[];
 };
 
 export const modeLabels: Record<HeatTransferMode, string> = {

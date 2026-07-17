@@ -29,8 +29,7 @@ export const scenarios: ThermalScenario[] = [
       { timeStep: 4, timeLabel: "끝", temperaturesC: { a: 40, b: 40 }, edges: [edge("a", "b", "contact-conduction", "none", "두 온도가 같아 한쪽 방향 없음")] },
     ],
     primaryModes: ["contact-conduction"],
-    acceptedPredictions: ["a-to-b"],
-    acceptedFinalDirections: ["none"],
+    predictionFrameIndex: 0,
     requiredEvidenceIds: ["temperature-gap", "contact"],
     evidence: [
       { id: "temperature-gap", title: "온도 차", detail: "A의 온도는 내려가고 B의 온도는 올라가요." },
@@ -60,9 +59,8 @@ export const scenarios: ThermalScenario[] = [
       { timeStep: 4, timeLabel: "4단계", temperaturesC: { source: 22, object: 41, room: 22 }, sourceState: "꺼짐", edges: [edge("object", "room", "contact-conduction", "forward", "물체에서 주변으로 알짜 이동")] },
       { timeStep: 5, timeLabel: "끝", temperaturesC: { source: 22, object: 37, room: 22 }, sourceState: "꺼짐", edges: [edge("object", "room", "contact-conduction", "forward", "물체에서 주변으로 알짜 이동")] },
     ],
-    primaryModes: ["radiation"],
-    acceptedPredictions: ["source-to-object"],
-    acceptedFinalDirections: ["object-to-room"],
+    primaryModes: ["radiation", "contact-conduction"],
+    predictionFrameIndex: 1,
     requiredEvidenceIds: ["source-state", "temperature-gap"],
     evidence: [
       { id: "source-state", title: "열원 상태", detail: "열원이 켜진 동안 물체 온도가 올라가고, 끈 뒤에는 내려가요." },
@@ -92,8 +90,7 @@ export const scenarios: ThermalScenario[] = [
       { timeStep: 3, timeLabel: "끝", temperaturesC: { left: 60, "middle-left": 47, "middle-right": 36, right: 29 }, edges: [edge("middle-right", "right", "solid-conduction", "forward", "오른쪽 가운데에서 오른쪽 끝으로 알짜 이동")] },
     ],
     primaryModes: ["solid-conduction"],
-    acceptedPredictions: ["left-to-right"],
-    acceptedFinalDirections: ["left-to-right"],
+    predictionFrameIndex: 1,
     requiredEvidenceIds: ["solid", "temperature-gap"],
     evidence: [
       { id: "solid", title: "고체 연결", detail: "고체 다리의 이웃한 부분을 따라 변화가 이어져요." },
@@ -121,8 +118,7 @@ export const scenarios: ThermalScenario[] = [
       { timeStep: 3, timeLabel: "끝", temperaturesC: { bottom: 51, top: 39 }, edges: [edge("bottom", "top", "fluid-convection", "forward", "아래쪽에서 위쪽으로 알짜 이동")], fluidMotion: "순환하며 에너지를 나르는 모습이에요." },
     ],
     primaryModes: ["fluid-convection"],
-    acceptedPredictions: ["bottom-to-top"],
-    acceptedFinalDirections: ["bottom-to-top"],
+    predictionFrameIndex: 1,
     requiredEvidenceIds: ["fluid", "temperature-gap"],
     evidence: [
       { id: "fluid", title: "유체 움직임", detail: "따뜻한 액체가 위로 움직이고 차가운 액체가 내려와요." },
@@ -148,11 +144,12 @@ export const scenarios: ThermalScenario[] = [
       { id: "target", label: "가상 물체", material: "고정 모형", initialTemperatureC: 30 },
     ],
     frames: [
-      { timeStep: 0, timeLabel: "감사 자료", temperaturesC: { "solid-hot": 55, "solid-cool": 25, "liquid-bottom": 48, "liquid-top": 30, lamp: 70, target: 30 }, edges: [edge("solid-hot", "solid-cool", "solid-conduction", "forward", "고체 왼쪽에서 오른쪽으로 알짜 이동"), edge("liquid-bottom", "liquid-top", "fluid-convection", "forward", "액체 아래에서 위로 알짜 이동"), edge("lamp", "target", "radiation", "forward", "열 램프에서 물체로 알짜 이동")] },
+      { timeStep: 0, timeLabel: "시작", temperaturesC: { "solid-hot": 55, "solid-cool": 25, "liquid-bottom": 48, "liquid-top": 30, lamp: 70, target: 30 }, edges: [edge("solid-hot", "solid-cool", "solid-conduction", "forward", "고체 왼쪽에서 오른쪽으로 알짜 이동"), edge("liquid-bottom", "liquid-top", "fluid-convection", "forward", "액체 아래에서 위로 알짜 이동"), edge("lamp", "target", "radiation", "forward", "열 램프에서 물체로 알짜 이동")] },
+      { timeStep: 1, timeLabel: "1단계", temperaturesC: { "solid-hot": 49, "solid-cool": 31, "liquid-bottom": 45, "liquid-top": 35, lamp: 70, target: 36 }, edges: [edge("solid-hot", "solid-cool", "solid-conduction", "forward", "고체 왼쪽에서 오른쪽으로 알짜 이동"), edge("liquid-bottom", "liquid-top", "fluid-convection", "forward", "액체 아래에서 위로 알짜 이동"), edge("lamp", "target", "radiation", "forward", "열 램프에서 물체로 알짜 이동")] },
+      { timeStep: 2, timeLabel: "끝", temperaturesC: { "solid-hot": 44, "solid-cool": 36, "liquid-bottom": 42, "liquid-top": 38, lamp: 70, target: 41 }, edges: [edge("solid-hot", "solid-cool", "solid-conduction", "forward", "고체 왼쪽에서 오른쪽으로 알짜 이동"), edge("liquid-bottom", "liquid-top", "fluid-convection", "forward", "액체 아래에서 위로 알짜 이동"), edge("lamp", "target", "radiation", "forward", "열 램프에서 물체로 알짜 이동")] },
     ],
     primaryModes: ["solid-conduction", "fluid-convection", "radiation"],
-    acceptedPredictions: ["solid-left-to-right", "bottom-to-top", "lamp-to-target"],
-    acceptedFinalDirections: ["solid-left-to-right", "bottom-to-top", "lamp-to-target"],
+    predictionFrameIndex: 0,
     requiredEvidenceIds: ["contact", "fluid", "space"],
     evidence: [
       { id: "contact", title: "맞닿은 고체", detail: "고체 양 끝이 맞닿아 온도 차가 있어요." },
@@ -160,11 +157,6 @@ export const scenarios: ThermalScenario[] = [
       { id: "space", title: "떨어진 공간", detail: "열 램프와 물체 사이에는 닿은 다리가 없어요." },
     ],
     limitationText: "현실에서는 전도·대류·복사가 함께 나타날 수 있어요. 세 정거장은 비교를 위해 주된 방식만 강조해요.",
-    auditStations: [
-      { id: "solid", title: "정거장 A · 맞닿은 고체", bodyIds: ["solid-hot", "solid-cool"], direction: "solid-left-to-right", mode: "solid-conduction", requiredEvidenceIds: ["contact"] },
-      { id: "fluid", title: "정거장 B · 액체 순환", bodyIds: ["liquid-bottom", "liquid-top"], direction: "bottom-to-top", mode: "fluid-convection", requiredEvidenceIds: ["fluid"] },
-      { id: "radiation", title: "정거장 C · 떨어진 열 램프", bodyIds: ["lamp", "target"], direction: "lamp-to-target", mode: "radiation", requiredEvidenceIds: ["space"] },
-    ],
   },
 ];
 

@@ -10,7 +10,12 @@ import {
   canRevealNextFrame,
   revealNextFrame,
 } from "../src/domain/revealState.ts";
-import { isAcceptedFinalDirection, revisionStatus } from "../src/domain/learningRecord.ts";
+import {
+  areAcceptedFrameDirections,
+  frameDirectionAnswers,
+  isAcceptedFinalDirection,
+  revisionStatus,
+} from "../src/domain/learningRecord.ts";
 import { getChartDomain } from "../src/visualization/chartDomain.ts";
 
 test("higher temperature points toward lower temperature and equal temperatures have no direction", () => {
@@ -31,8 +36,10 @@ test("the five fixed scenarios meet the catalog contract", () => {
   const solidBridge = scenarios.find((scenario) => scenario.id === "solid-bridge");
   assert.equal(solidBridge?.bodies.length, 4);
   const audit = scenarios.find((scenario) => scenario.id === "final-audit");
-  assert.equal(audit?.auditStations?.length, 3);
-  assert.deepEqual(audit?.auditStations?.map((station) => station.mode), [
+  assert.equal("auditStations" in audit!, false);
+  assert.ok((audit?.frames.length ?? 0) >= 3);
+  assert.equal(audit?.frames[0].edges.length, 3);
+  assert.deepEqual(frameDirectionAnswers(audit!, 0).map((answer) => answer.mode), [
     "solid-conduction", "fluid-convection", "radiation",
   ]);
 });
@@ -55,4 +62,14 @@ test("final direction accepts only the catalog direction and records whether it 
 test("chart range is fixed from every frame, not the currently revealed frame", () => {
   const source = scenarios.find((scenario) => scenario.id === "source-switch");
   assert.deepEqual(getChartDomain(source!), { min: 10, max: 70 });
+});
+
+test("final-audit directions and modes are derived from its revealed frame edges", () => {
+  const audit = scenarios.find((scenario) => scenario.id === "final-audit")!;
+  const firstAnswers = frameDirectionAnswers(audit, 0);
+  assert.deepEqual(firstAnswers.map((answer) => answer.direction), [
+    "solid-hot-to-solid-cool", "liquid-bottom-to-liquid-top", "lamp-to-target",
+  ]);
+  assert.equal(areAcceptedFrameDirections(audit, 0, Object.fromEntries(firstAnswers.map((answer) => [answer.id, answer.direction]))), true);
+  assert.equal(areAcceptedFrameDirections(audit, 0, { [firstAnswers[0].id]: "none" }), false);
 });
