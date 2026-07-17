@@ -124,3 +124,56 @@ git diff --check
 ### Fix commit
 
 `7ad37f5f095e2ec0ca2e76b38c980efa59d966e7` — `fix: address educational MVP review findings`
+
+---
+
+## Re-review fix wave (2026-07-17)
+
+Scenario 5 now uses the same condition → prediction → sequential frame reveal → final review → mode/evidence → result-record contract as every other scenario.
+
+### RED evidence
+
+```bash
+npm run test:unit
+```
+
+Observed expected RED failure before implementation:
+
+```text
+SyntaxError: learningRecord.ts does not provide an export named areAcceptedFrameDirections
+```
+
+The expanded tests required frame-derived final-audit direction and mode answers before the derivation helper existed.
+
+### GREEN and full verification
+
+```bash
+npm run test:unit
+# 6 passed: adds final-audit frame-derived directions and modes
+
+npm run lint
+# passed
+
+npm run build
+# passed
+
+node --test tests/rendered-html.test.mjs
+# 2 passed: rendered Korean content plus no separate audit-flow branch
+
+npm test
+# 8 passed total: 6 domain tests and 2 rendered-output tests
+
+git diff --check
+# passed
+```
+
+### Re-review fix
+
+- Removed `AuditScenarioFlow`, `auditStations`, and duplicated direction/mode answer strings.
+- Added frame-linked `predictionFrameIndex`; all prediction and final answers now derive from `TransferEdge` data through `frameDirectionAnswers`.
+- Scenario 5 now exposes three sequential frames, each with the three station edges. Its workbench displays all three routes at every revealed frame.
+- The common flow records all three initial predictions, their maintained/revised status, all accepted final directions, all selected modes, selected evidence, and the limitation text.
+
+### Fix commit
+
+`6785cfd7a7eb85f795d35925c25a6795ed1203ac` — `fix: unify final audit learning flow`
