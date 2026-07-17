@@ -13,7 +13,6 @@ import {
 import {
   areAcceptedFrameDirections,
   frameDirectionAnswers,
-  isAcceptedFinalDirection,
   revisionStatus,
 } from "../src/domain/learningRecord.ts";
 import { getChartDomain } from "../src/visualization/chartDomain.ts";
@@ -51,12 +50,31 @@ test("frames are revealed only in order after an observation", () => {
   assert.equal(revealNextFrame(4, 1, 5), 4);
 });
 
-test("final direction accepts only the catalog direction and records whether it was revised", () => {
+test("final direction accepts only the catalog direction and records stable-path revisions", () => {
   const contact = scenarios[0];
-  assert.equal(isAcceptedFinalDirection(contact, "a-to-b"), false);
-  assert.equal(isAcceptedFinalDirection(contact, "none"), true);
-  assert.equal(revisionStatus("a-to-b", "none"), "수정함");
-  assert.equal(revisionStatus("left-to-right", "left-to-right"), "유지함");
+  assert.equal(areAcceptedFrameDirections(contact, contact.frames.length - 1, { "a-to-b": "a-to-b" }), false);
+  assert.equal(areAcceptedFrameDirections(contact, contact.frames.length - 1, { "a-to-b": "none" }), true);
+  assert.equal(revisionStatus("a-to-b", "none", "a-to-b", "a-to-b"), "수정함");
+  assert.equal(revisionStatus("left-to-right", "left-to-right", "path", "path"), "유지함");
+  const source = scenarios.find((scenario) => scenario.id === "source-switch")!;
+  const solid = scenarios.find((scenario) => scenario.id === "solid-bridge")!;
+  assert.equal(revisionStatus("source-to-object", "object-to-room", frameDirectionAnswers(source, 1)[0].id, frameDirectionAnswers(source, 5)[0].id), "조건이 바뀌어 새 경로를 확인함");
+  assert.equal(revisionStatus("left-to-middle-left", "middle-right-to-right", frameDirectionAnswers(solid, 1)[0].id, frameDirectionAnswers(solid, 3)[0].id), "조건이 바뀌어 새 경로를 확인함");
+});
+
+test("content validation catches endpoints, temperature bounds, source completeness, evidence, modes, and closed-model invariants", () => {
+  const broken = structuredClone(scenarios);
+  broken[0].frames[0].temperaturesC.a = 81;
+  broken[0].frames[0].edges[0].toId = "missing";
+  broken[0].requiredEvidenceIds = ["missing-evidence"];
+  broken[0].primaryModes = [];
+  broken[0].limitationText = "";
+  const source = broken.find((scenario) => scenario.id === "source-switch")!;
+  delete source.frames[0].sourceState;
+  assert.match(validateScenarioCatalog(broken).join("\n"), /온도 범위|연결한 물체|열원 상태|근거|방식|제한 문구/);
+  const closed = structuredClone(scenarios);
+  closed[0].frames[1].temperaturesC.a = 51;
+  assert.match(validateScenarioCatalog(closed).join("\n"), /온도 합/);
 });
 
 test("chart range is fixed from every frame, not the currently revealed frame", () => {

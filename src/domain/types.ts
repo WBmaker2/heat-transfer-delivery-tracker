@@ -2,7 +2,8 @@ export type HeatTransferMode =
   | "contact-conduction"
   | "solid-conduction"
   | "fluid-convection"
-  | "radiation";
+  | "radiation"
+  | "mixed";
 
 export type NetDirection = "forward" | "none";
 
@@ -58,4 +59,5 @@ export const modeLabels: Record<HeatTransferMode, string> = {
   "solid-conduction": "고체를 따라 전달됨(전도)",
   "fluid-convection": "액체가 움직이며 전달됨(대류)",
   radiation: "떨어져 전달됨(복사)",
+  mixed: "주변으로 여러 방식으로 이동",
 };

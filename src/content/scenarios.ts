@@ -52,14 +52,14 @@ export const scenarios: ThermalScenario[] = [
       { id: "room", label: "주변", material: "고정 모형", initialTemperatureC: 22 },
     ],
     frames: [
-      { timeStep: 0, timeLabel: "시작", temperaturesC: { source: 22, object: 22, room: 22 }, sourceState: "꺼짐", edges: [edge("object", "room", "contact-conduction", "none", "두 온도가 같아 한쪽 방향 없음")] },
+      { timeStep: 0, timeLabel: "시작", temperaturesC: { source: 22, object: 22, room: 22 }, sourceState: "꺼짐", edges: [edge("object", "room", "mixed", "none", "두 온도가 같아 한쪽 방향 없음")] },
       { timeStep: 1, timeLabel: "1단계", temperaturesC: { source: 60, object: 30, room: 22 }, sourceState: "켜짐", edges: [edge("source", "object", "radiation", "forward", "열원에서 물체로 알짜 이동")] },
       { timeStep: 2, timeLabel: "2단계", temperaturesC: { source: 60, object: 38, room: 22 }, sourceState: "켜짐", edges: [edge("source", "object", "radiation", "forward", "열원에서 물체로 알짜 이동")] },
       { timeStep: 3, timeLabel: "3단계", temperaturesC: { source: 60, object: 44, room: 22 }, sourceState: "켜짐", edges: [edge("source", "object", "radiation", "forward", "열원에서 물체로 알짜 이동")] },
-      { timeStep: 4, timeLabel: "4단계", temperaturesC: { source: 22, object: 41, room: 22 }, sourceState: "꺼짐", edges: [edge("object", "room", "contact-conduction", "forward", "물체에서 주변으로 알짜 이동")] },
-      { timeStep: 5, timeLabel: "끝", temperaturesC: { source: 22, object: 37, room: 22 }, sourceState: "꺼짐", edges: [edge("object", "room", "contact-conduction", "forward", "물체에서 주변으로 알짜 이동")] },
+      { timeStep: 4, timeLabel: "4단계", temperaturesC: { source: 22, object: 41, room: 22 }, sourceState: "꺼짐", edges: [edge("object", "room", "mixed", "forward", "물체에서 주변으로 여러 방식으로 알짜 이동")] },
+      { timeStep: 5, timeLabel: "끝", temperaturesC: { source: 22, object: 37, room: 22 }, sourceState: "꺼짐", edges: [edge("object", "room", "mixed", "forward", "물체에서 주변으로 여러 방식으로 알짜 이동")] },
     ],
-    primaryModes: ["radiation", "contact-conduction"],
+    primaryModes: ["radiation", "mixed"],
     predictionFrameIndex: 1,
     requiredEvidenceIds: ["source-state", "temperature-gap"],
     evidence: [
@@ -67,7 +67,7 @@ export const scenarios: ThermalScenario[] = [
       { id: "temperature-gap", title: "온도 차", detail: "꺼진 뒤 물체가 주변보다 더 따뜻해요." },
       { id: "contact", title: "접촉", detail: "이 사건은 열원 상태가 바뀌는 열린 계 모형이에요." },
     ],
-    limitationText: "켜진 동안에도 주변으로 전달이 있을 수 있어요. 화살표는 물체 온도를 올린 알짜 효과예요.",
+    limitationText: "켜진 동안에도 주변으로 전달이 있을 수 있어요. 꺼진 뒤에는 물체에서 주변으로 전도·대류·복사가 함께 나타날 수 있어요.",
   },
   {
     id: "solid-bridge",
@@ -163,15 +163,34 @@ export const scenarios: ThermalScenario[] = [
 export function validateScenarioCatalog(catalog: ThermalScenario[]): string[] {
   const errors: string[] = [];
   for (const scenario of catalog) {
-    if (!scenario.frames.length || !scenario.primaryModes.length || !scenario.limitationText) errors.push(`${scenario.id}: 기본 정보가 없어요.`);
+    const bodyIds = new Set(scenario.bodies.map((body) => body.id));
+    const evidenceIds = new Set(scenario.evidence.map((item) => item.id));
+    if (!scenario.frames.length) errors.push(`${scenario.id}: 시간 자료가 없어요.`);
+    if (!scenario.primaryModes.length) errors.push(`${scenario.id}: 주된 방식이 없어요.`);
+    if (!scenario.limitationText) errors.push(`${scenario.id}: 제한 문구가 없어요.`);
+    if (scenario.predictionFrameIndex < 0 || scenario.predictionFrameIndex >= scenario.frames.length) errors.push(`${scenario.id}: 예측 시점이 없어요.`);
+    for (const requiredId of scenario.requiredEvidenceIds) if (!evidenceIds.has(requiredId)) errors.push(`${scenario.id}: 필요한 근거가 없어요.`);
     scenario.frames.forEach((frame, index) => {
       if (frame.timeStep !== index) errors.push(`${scenario.id}: 시점 순서가 이어지지 않아요.`);
-      for (const body of scenario.bodies) if (!(body.id in frame.temperaturesC)) errors.push(`${scenario.id}: ${body.id} 온도가 없어요.`);
+      for (const body of scenario.bodies) {
+        const temperature = frame.temperaturesC[body.id];
+        if (temperature === undefined) errors.push(`${scenario.id}: ${body.id} 온도가 없어요.`);
+        else if (!Number.isInteger(temperature) || temperature < 0 || temperature > 80) errors.push(`${scenario.id}: 온도 범위를 벗어났어요.`);
+      }
+      if (scenario.systemKind === "open-with-source" && !frame.sourceState) errors.push(`${scenario.id}: 열원 상태가 없어요.`);
       for (const transfer of frame.edges) {
+        if (!bodyIds.has(transfer.fromId) || !bodyIds.has(transfer.toId)) { errors.push(`${scenario.id}: 연결한 물체가 없어요.`); continue; }
+        if (!scenario.primaryModes.includes(transfer.mode)) errors.push(`${scenario.id}: 경로의 방식이 목록에 없어요.`);
         if (transfer.netDirection === "forward" && frame.temperaturesC[transfer.fromId] <= frame.temperaturesC[transfer.toId]) errors.push(`${scenario.id}: 화살표가 온도와 맞지 않아요.`);
         if (transfer.netDirection === "none" && frame.temperaturesC[transfer.fromId] !== frame.temperaturesC[transfer.toId]) errors.push(`${scenario.id}: 같은 온도일 때만 방향이 없어야 해요.`);
       }
     });
+    if (scenario.systemKind === "closed-ideal-pair") {
+      const [firstBody, secondBody] = scenario.bodies;
+      const expectedSum = scenario.frames[0]?.temperaturesC[firstBody.id] + scenario.frames[0]?.temperaturesC[secondBody.id];
+      if (!scenario.frames.every((frame) => frame.temperaturesC[firstBody.id] + frame.temperaturesC[secondBody.id] === expectedSum)) errors.push(`${scenario.id}: 닫힌 모형의 온도 합이 달라요.`);
+      if (!scenario.limitationText.includes("평균")) errors.push(`${scenario.id}: 닫힌 모형 제한 문구가 없어요.`);
+    }
   }
   return errors;
 }

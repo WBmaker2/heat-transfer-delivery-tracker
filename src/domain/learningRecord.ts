@@ -24,10 +24,12 @@ export function areAcceptedFrameDirections(scenario: ThermalScenario, frameIndex
   return frameDirectionAnswers(scenario, frameIndex).every((answer) => choices[answer.id] === answer.direction);
 }
 
-export function isAcceptedFinalDirection(scenario: ThermalScenario, choice: string): boolean {
-  return frameDirectionAnswers(scenario, scenario.frames.length - 1)[0]?.direction === choice;
-}
-
-export function revisionStatus(prediction: string, finalDirection: string): "유지함" | "수정함" {
+export function revisionStatus(
+  prediction: string,
+  finalDirection: string,
+  predictionPathId: string,
+  finalPathId: string,
+): "유지함" | "수정함" | "조건이 바뀌어 새 경로를 확인함" {
+  if (predictionPathId !== finalPathId) return "조건이 바뀌어 새 경로를 확인함";
   return prediction === finalDirection ? "유지함" : "수정함";
 }
