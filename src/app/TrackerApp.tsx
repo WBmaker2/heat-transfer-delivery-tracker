@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
 import { Dialog } from "../components/Dialog";
 import { modeExplanations, updateHistory } from "../content/explanations";
@@ -21,15 +21,18 @@ export function TrackerApp() {
   const [scenarioIndex, setScenarioIndex] = useState(0);
   const [dialog, setDialog] = useState<DialogName>(null);
   const [finished, setFinished] = useState(false);
+  const dialogTriggerRef = useRef<HTMLElement | null>(null);
   const scenario = scenarios[scenarioIndex];
   const scenarioLabel = started ? `사건 ${scenarioIndex + 1} / 5` : "안내 활동";
   function completeScenario() {
     if (scenarioIndex === scenarios.length - 1) setFinished(true);
     else setScenarioIndex((index) => index + 1);
   }
-  return <div className="app-shell"><AppHeader scenarioLabel={scenarioLabel} onOpenHelp={() => setDialog("help")} onOpenTeacher={() => setDialog("teacher")} onOpenUpdates={() => setDialog("updates")} />
+  function openDialog(nextDialog: Exclude<DialogName, null>) { dialogTriggerRef.current = document.activeElement as HTMLElement; setDialog(nextDialog); }
+  function closeDialog() { setDialog(null); requestAnimationFrame(() => dialogTriggerRef.current?.focus()); }
+  return <div className="app-shell"><AppHeader scenarioLabel={scenarioLabel} onOpenHelp={() => openDialog("help")} onOpenTeacher={() => openDialog("teacher")} onOpenUpdates={() => openDialog("updates")} />
     <main id="main-content" tabIndex={-1}>{!started ? <ModelGuide onComplete={() => setStarted(true)} /> : finished ? <section className="finish-panel"><p className="completion-stamp">전체 추적 완료</p><h1>다섯 사건을 모두 살펴봤어요.</h1><p>온도 숫자, 시간 변화, 알짜 방향, 이동 방식을 함께 읽었어요.</p><button type="button" className="button primary" onClick={() => { setStarted(false); setScenarioIndex(0); setFinished(false); }}>처음부터 다시 보기</button></section> : <ScenarioFlow key={scenario.id} scenario={scenario} number={scenarioIndex + 1} onComplete={completeScenario} />}</main>
     <footer>연습용 고정 자료 · 개인정보를 수집하거나 저장하지 않아요.</footer>
-    {dialog && <Dialog title={dialog === "help" ? "도움말" : dialog === "teacher" ? "교사용 안내" : "업데이트 내역"} onClose={() => setDialog(null)}><DialogContent dialog={dialog} /></Dialog>}
+    {dialog && <Dialog title={dialog === "help" ? "도움말" : dialog === "teacher" ? "교사용 안내" : "업데이트 내역"} onClose={closeDialog}><DialogContent dialog={dialog} /></Dialog>}
   </div>;
 }
