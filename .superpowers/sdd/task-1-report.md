@@ -226,3 +226,63 @@ git diff --check
 ### Fix commit
 
 `76eaa03f0b4f097cd40aa3d13f6d315a6b16621d` — `fix: distinguish all final audit chart series`
+
+---
+
+## Whole-branch pre-publish fix wave (2026-07-17)
+
+All findings 11–16 were addressed, including the approved real-browser Playwright and axe coverage.
+
+### RED evidence
+
+```bash
+npm run test:unit; npm run test:e2e
+```
+
+Observed expected failures before implementation:
+
+```text
+revisionStatus returned 수정함 instead of 조건이 바뀌어 새 경로를 확인함
+catalog validation returned only the previous basic-information error
+sh: playwright: command not found
+```
+
+After installing the focused plan-required dependencies, real E2E also exposed the two implementation issues fixed in this wave: a 320px document width of 340px and an incorrect keyboard test final-direction action.
+
+### GREEN and full verification
+
+```bash
+npm run test:unit
+# 7 passed
+
+npm run lint
+# passed
+
+npm run build
+# passed
+
+npm test
+# 9 passed total: 7 domain tests and 2 rendered-output tests
+
+npm run test:e2e
+# 2 passed in real Chromium: guide/keyboard/sequential feedback and
+# dialog/320px/200 percent/reduced-motion/forced-colors/axe coverage
+
+git diff --check
+# passed
+```
+
+The macOS Chromium process required the permitted unsandboxed test invocation; Playwright's managed web server builds a fresh app on port 4173 and closes it after the suite, without changing the parent development server.
+
+### Review fixes
+
+- Result revision status now uses stable frame-edge path IDs. When the observed path changes in scenarios 2 or 3, it says `조건이 바뀌어 새 경로를 확인함` instead of implying an incorrect student revision.
+- Added `mixed` as the surrounding-cooling mode. Scenario 2 now says the object moves heat to the surroundings through several possible ways, rather than claiming direct contact conduction.
+- Added focused content validation for endpoint IDs, 0–80°C integer data, open-system source states, evidence/mode presence, equal-temperature no-direction, and the documented closed-pair invariant.
+- Stage changes focus a new heading, newly revealed frames announce through `aria-live`, previous-step navigation preserves revealed data, and reset uses a confirmation dialog with focus restoration.
+- Added `@playwright/test` and `@axe-core/playwright`, a fresh-build Playwright configuration, and real browser coverage for the approved keyboard, modal, responsive, zoom, media, and axe cases.
+- Added a student-readable v1.0.0 update-history note about clearer graph marks and the several-ways cooling clarification.
+
+### Fix commit
+
+`2ee51cb24e8f3f7027a0d4b949b5e8f7d745b4b9` — `fix: complete pre-publish learning and accessibility review`
