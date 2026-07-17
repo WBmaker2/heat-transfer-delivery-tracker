@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
-import { SkeletonPreview } from "./_sites-preview/SkeletonPreview";
+import { TrackerApp } from "../src/app/TrackerApp";
 
 export const metadata: Metadata = {
-  title: "Your site is taking shape",
-  description:
-    "Your first version will appear here automatically when it’s ready.",
-  other: {
-    "codex-preview": "development",
-  },
+  title: "열 이동 배달 추적소 | 온도표로 열 이동 알아보기",
+  description: "초등 5~6학년을 위한 열 이동 학습 웹앱입니다.",
 };
 
 export default function Home() {
-  return <SkeletonPreview />;
+  return <TrackerApp />;
 }
