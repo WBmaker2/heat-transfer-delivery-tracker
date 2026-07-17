@@ -15,11 +15,11 @@ export function TemperatureChart({ scenario, revealedFrameIndex }: { scenario: T
   const bodies = scenario.bodies;
   const { min, max } = getChartDomain(scenario);
   const range = Math.max(10, max - min);
-  const point = (value: number, index: number) => ({ x: 8 + index * (84 / Math.max(1, frames.length - 1)), y: 88 - ((value - min) / range) * 72 });
+  const point = (value: number, index: number) => ({ x: 18 + index * (135 / Math.max(1, frames.length - 1)), y: 62 - ((value - min) / range) * 50 });
   return <section className="chart-panel" aria-labelledby="chart-title"><div className="panel-title"><div><p className="section-kicker">시간 추적판</p><h2 id="chart-title">온도 변화 그래프</h2></div><span>{min}–{max}°C 고정 범위</span></div>
-    <svg viewBox="0 0 100 100" role="img" aria-label={`${frames.map((frame) => `${frame.timeLabel} ${bodies.map((body) => `${body.label} ${frame.temperaturesC[body.id]}도`).join(", ")}`).join("; ")}`}>
-      <line x1="8" y1="8" x2="8" y2="88" className="axis" /><line x1="8" y1="88" x2="94" y2="88" className="axis" />
-      {[0, 0.5, 1].map((tick) => <g key={tick}><line x1="8" x2="94" y1={88 - tick * 72} y2={88 - tick * 72} className="grid" /><text x="1" y={90 - tick * 72}>{Math.round(min + tick * range)}°</text></g>)}
+    <svg viewBox="0 0 160 76" role="img" aria-label={`${frames.map((frame) => `${frame.timeLabel} ${bodies.map((body) => `${body.label} ${frame.temperaturesC[body.id]}도`).join(", ")}`).join("; ")}`}>
+      <line x1="18" y1="6" x2="18" y2="62" className="axis" /><line x1="18" y1="62" x2="153" y2="62" className="axis" />
+      {[0, 0.5, 1].map((tick) => <g key={tick}><line x1="18" x2="153" y1={62 - tick * 50} y2={62 - tick * 50} className="grid" /><text x="1" y={64 - tick * 50}>{Math.round(min + tick * range)}°</text></g>)}
       {bodies.map((body, bodyIndex) => { const points = frames.map((frame, index) => point(frame.temperaturesC[body.id], index)); return <g key={body.id}><polyline className={`series series-${bodyIndex}`} points={points.map(({ x, y }) => `${x},${y}`).join(" ")} />{points.map(({ x, y }, index) => <PointMark key={frames[index].timeStep} variant={bodyIndex} x={x} y={y} />)}</g>; })}
     </svg>
     <div className="legend">{bodies.map((body, index) => <span key={body.id} className={`legend-${index}`}>{body.label}</span>)}</div>

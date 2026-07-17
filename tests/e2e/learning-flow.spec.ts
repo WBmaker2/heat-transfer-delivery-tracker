@@ -127,3 +127,58 @@ test("active scenario stays operable at 320px, 200 percent zoom, media modes, di
   expect(mediaStyles.animation).toBe("none");
   expect(mediaStyles.seriesStroke).not.toBe("");
 });
+
+test("mobile workbench keeps both thermal cards and the current stage readable", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/");
+  const headerToolHeights = await page.locator(".header-tools button").evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
+  expect(headerToolHeights.every((height) => height >= 44)).toBe(true);
+  await startScenarioWithKeyboard(page);
+  await expect(page.locator(".progress-step[aria-current='step']")).toHaveText(/조건/);
+  await expect(page.locator(".progress-step[data-stage-status='upcoming']")).toHaveCount(6);
+  await expect(page.locator(".progress-line")).toHaveCSS("list-style-type", "none");
+  await expect(page.locator(".progress-line")).toHaveCSS("padding-left", "0px");
+
+  await enterTimelineWithKeyboard(page);
+  const route = page.locator(".workbench-route").first();
+  const thermalCards = route.locator("[data-thermal-card]");
+  const direction = route.locator("[data-direction-description]");
+  await expect(thermalCards).toHaveCount(2);
+  await expect(thermalCards.nth(0)).toContainText("가상 고체 A");
+  await expect(thermalCards.nth(1)).toContainText("가상 고체 B");
+  await expect(direction).toContainText("알짜 이동");
+
+  const layout = await route.evaluate((element) => {
+    const row = element.querySelector<HTMLElement>(".body-row")!;
+    const routeBounds = element.getBoundingClientRect();
+    const parts = [...element.querySelectorAll<HTMLElement>("[data-thermal-card], [data-direction-description]")];
+    return {
+      direction: getComputedStyle(row).flexDirection,
+      internalOverflow: parts.some((part) => part.scrollWidth > part.clientWidth || part.scrollHeight > part.clientHeight),
+      partsFitRoute: parts.every((part) => {
+        const bounds = part.getBoundingClientRect();
+        return bounds.left >= routeBounds.left - 1 && bounds.right <= routeBounds.right + 1;
+      }),
+    };
+  });
+  expect(layout.direction).toBe("column");
+  expect(layout.internalOverflow).toBe(false);
+  expect(layout.partsFitRoute).toBe(true);
+  await expect(page.locator(".progress-step[aria-current='step']")).toHaveText(/시간 자료/);
+  await expect(page.locator(".progress-step[data-stage-status='complete']")).toHaveCount(2);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const layout390 = await route.evaluate((element) => {
+    const routeBounds = element.getBoundingClientRect();
+    const parts = [...element.querySelectorAll<HTMLElement>("[data-thermal-card], [data-direction-description]")];
+    return {
+      internalOverflow: parts.some((part) => part.scrollWidth > part.clientWidth || part.scrollHeight > part.clientHeight),
+      partsFitRoute: parts.every((part) => {
+        const bounds = part.getBoundingClientRect();
+        return bounds.left >= routeBounds.left - 1 && bounds.right <= routeBounds.right + 1;
+      }),
+    };
+  });
+  expect(layout390.internalOverflow).toBe(false);
+  expect(layout390.partsFitRoute).toBe(true);
+});

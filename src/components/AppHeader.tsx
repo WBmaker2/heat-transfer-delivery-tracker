@@ -16,9 +16,9 @@ export function AppHeader({ scenarioLabel, onOpenHelp, onOpenTeacher, onOpenUpda
       </a>
       <div className="header-tools">
         <span className="scenario-chip">{scenarioLabel}</span>
-        <button type="button" onClick={onOpenHelp}>도움말</button>
-        <button type="button" onClick={onOpenTeacher}>교사용 안내</button>
-        <button type="button" onClick={onOpenUpdates}>업데이트 내역</button>
+        <button type="button" aria-label="도움말 열기" onClick={onOpenHelp}>도움</button>
+        <button type="button" aria-label="교사용 안내 열기" onClick={onOpenTeacher}>교사용</button>
+        <button type="button" aria-label="업데이트 내역 열기" onClick={onOpenUpdates}>업데이트</button>
       </div>
     </header>
   );

@@ -12,6 +12,7 @@ import { ThermalWorkbench } from "../visualization/ThermalWorkbench";
 type Stage = "condition" | "prediction" | "timeline" | "review" | "mode" | "evidence" | "result";
 type ChoiceMap = Record<string, string>;
 const stageNames: Record<Stage, string> = { condition: "조건", prediction: "예측", timeline: "시간 자료", review: "방향 확인", mode: "방식", evidence: "근거", result: "기록" };
+const stages = Object.keys(stageNames) as Stage[];
 
 function bodyLabel(scenario: ThermalScenario, id: string) { return scenario.bodies.find((body) => body.id === id)?.label ?? id; }
 function directionLabel(scenario: ThermalScenario, fromId: string, toId: string, direction: string) { return direction === "none" ? "한쪽 방향 없음" : `${bodyLabel(scenario, fromId)}에서 ${bodyLabel(scenario, toId)}로`; }
@@ -36,6 +37,7 @@ export function ScenarioFlow({ scenario, number, onComplete }: { scenario: Therm
   const choicesComplete = (answers: FrameDirectionAnswer[], selected: ChoiceMap) => answers.every((answer) => Boolean(selected[answer.id]));
   const modesCorrect = finalAnswers.every((answer) => selectedModes[answer.id] === answer.mode);
   const allModesSelected = finalAnswers.every((answer) => Boolean(selectedModes[answer.id]));
+  const currentStageIndex = stages.indexOf(stage);
   useEffect(() => { stageHeadingRef.current?.focus(); }, [stage]);
   function setChoice(setter: (value: ChoiceMap) => void, current: ChoiceMap, id: string, value: string) { setter({ ...current, [id]: value }); }
   function recordPrediction() {
@@ -54,7 +56,16 @@ export function ScenarioFlow({ scenario, number, onComplete }: { scenario: Therm
   function goBack() { const previous: Partial<Record<Stage, Stage>> = { prediction: "condition", timeline: "prediction", review: "timeline", mode: "review", evidence: "mode", result: "evidence" }; const next = previous[stage]; if (next) setStage(next); }
   function resetScenario() { setStage("condition"); setPrediction({}); setRevealedFrameIndex(0); setObserved(false); setFinalDirections({}); setSelectedModes({}); setEvidence([]); setFeedback(""); setConfirmReset(false); requestAnimationFrame(() => resetButtonRef.current?.focus()); }
   return <section className="scenario-flow" aria-labelledby="scenario-title">
-    <div className="progress-line" aria-label={`사건 ${number}의 현재 단계: ${stageNames[stage]}`}>{(Object.keys(stageNames) as Stage[]).map((item) => <span key={item} className={item === stage ? "active" : ""}>{stageNames[item]}</span>)}<button ref={resetButtonRef} type="button" className="button secondary" onClick={() => setConfirmReset(true)}>사건 처음부터</button></div>
+    <div className="scenario-controls">
+      <nav className="progress-tracker" aria-label={`사건 ${number}의 학습 단계`}>
+        <div className="progress-summary"><strong>학습 단계 {currentStageIndex + 1}/7</strong><span>현재: {stageNames[stage]}</span></div>
+        <ol className="progress-line" tabIndex={0} aria-label="학습 단계 목록. 좌우로 넘겨 모든 단계를 볼 수 있어요.">{stages.map((item, index) => {
+          const status = index < currentStageIndex ? "complete" : index === currentStageIndex ? "current" : "upcoming";
+          return <li key={item} className={`progress-step ${status}`} data-stage-status={status} {...(status === "current" ? { "aria-current": "step" as const } : {})}><span className="progress-step-number" aria-hidden="true">{index + 1}</span><span>{stageNames[item]}</span><span className="sr-only">{status === "complete" ? "완료" : status === "current" ? "현재 단계" : "예정"}</span></li>;
+        })}</ol>
+      </nav>
+      <button ref={resetButtonRef} type="button" className="button secondary reset-button" onClick={() => setConfirmReset(true)}>사건 처음부터</button>
+    </div>
     <div className="scenario-heading"><p className="section-kicker">고정 추적 사건 {number} / 5</p><h1 id="scenario-title">{scenario.title}</h1><p>{scenario.condition}</p></div>
     <h2 ref={stageHeadingRef} className="sr-only" tabIndex={-1}>{stageNames[stage]} 단계</h2>
     {stage === "condition" && <section className="condition-sheet"><h2>배달 조건표를 확인해요</h2><ul>{scenario.controlledConditions.map((condition) => <li key={condition}>{condition}</li>)}</ul>{scenario.changedCondition && <p className="changed-condition">바뀌는 조건: {scenario.changedCondition}</p>}<button type="button" className="button primary" onClick={() => setStage("prediction")}>시작 온도 확인했어요</button></section>}
