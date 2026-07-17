@@ -26,16 +26,18 @@ test("server-renders the Korean heat-transfer learning guide", async () => {
 });
 
 test("removes the starter preview and keeps the educational content wired", async () => {
-  const [page, layout, packageJson, scenarios, styles, workbench, table, dialog] = await Promise.all([
+  const [page, layout, packageJson, scenarios, styles, workbench, table, dialog, chart] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"), readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"), readFile(new URL("../src/content/scenarios.ts", import.meta.url), "utf8"), readFile(new URL("../app/tracker.css", import.meta.url), "utf8"),
-    readFile(new URL("../src/visualization/ThermalWorkbench.tsx", import.meta.url), "utf8"), readFile(new URL("../src/visualization/TemperatureTable.tsx", import.meta.url), "utf8"), readFile(new URL("../src/components/Dialog.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/visualization/ThermalWorkbench.tsx", import.meta.url), "utf8"), readFile(new URL("../src/visualization/TemperatureTable.tsx", import.meta.url), "utf8"), readFile(new URL("../src/components/Dialog.tsx", import.meta.url), "utf8"), readFile(new URL("../src/visualization/TemperatureChart.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(page, /TrackerApp/); assert.match(layout, /lang="ko"/); assert.doesNotMatch(packageJson, /react-loading-skeleton/); assert.match(packageJson, /"name": "heat-transfer-delivery-tracker"/);
   for (const id of ["contact-lockers", "source-switch", "solid-bridge", "liquid-cycle", "final-audit"]) assert.match(scenarios, new RegExp(`id: "${id}"`));
   assert.match(styles, /@media \(max-width:700px\)/); assert.match(styles, /temperature-table-cards/); assert.match(styles, /prefers-reduced-motion/);
   assert.doesNotMatch(workbench, /slice\(0, 2\)/); assert.match(workbench, /edgeEndpointIds/); assert.match(table, /temperature-table-cards/);
   assert.match(dialog, /onKeyDown/); assert.match(dialog, /Escape/); assert.match(dialog, /focus\(\)/);
+  assert.doesNotMatch(chart, /% 4/); assert.match(chart, /PointMark/);
+  for (const index of [0, 1, 2, 3, 4, 5]) { assert.match(styles, new RegExp(`\\.series-${index}\\s*\\{`)); assert.match(styles, new RegExp(`\\.dot-${index}\\s*\\{`)); assert.match(styles, new RegExp(`\\.legend-${index}\\s*\\{`)); }
   const flow = await readFile(new URL("../src/features/ScenarioFlow.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(flow, /AuditScenarioFlow|auditStations/); assert.match(flow, /frameDirectionAnswers/);
   await assert.rejects(readFile(new URL("../app/_sites-preview/SkeletonPreview.tsx", templateRoot)));
