@@ -177,3 +177,52 @@ git diff --check
 ### Fix commit
 
 `6785cfd7a7eb85f795d35925c25a6795ed1203ac` — `fix: unify final audit learning flow`
+
+---
+
+## Final graph-accessibility fix (2026-07-17)
+
+Scenario 5 now assigns six distinct, color-independent visual treatments to its six temperature series.
+
+### RED evidence
+
+```bash
+npm run build && node --test tests/rendered-html.test.mjs
+```
+
+Observed expected RED failure before production changes:
+
+```text
+AssertionError: chart source unexpectedly matched /% 4/
+```
+
+The focused rendered/source test caught modulo-four reuse before the six-series treatment was implemented.
+
+### GREEN and full verification
+
+```bash
+npm run lint
+# passed
+
+npm run build
+# passed
+
+node --test tests/rendered-html.test.mjs
+# 2 passed, including six unique series/dot/legend class checks
+
+npm test
+# 8 passed total: 6 domain tests and 2 rendered-output tests
+
+git diff --check
+# passed
+```
+
+### Fix
+
+- Removed modulo-four class assignment from the chart.
+- Added six unique line patterns and point shapes: filled circle, hollow circle, square, diamond, triangle, and cross.
+- Added matching six legend line/shape treatments, so a learner does not have to rely on color alone.
+
+### Fix commit
+
+`76eaa03f0b4f097cd40aa3d13f6d315a6b16621d` — `fix: distinguish all final audit chart series`
