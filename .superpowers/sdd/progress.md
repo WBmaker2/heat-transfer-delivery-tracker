@@ -1,3 +1,3 @@
 # Subagent-driven development progress
 
-Task 1: complete — commit 0448fb9
+Task 1: complete — MVP commit fd18c9f
