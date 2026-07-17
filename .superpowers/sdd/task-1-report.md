@@ -286,3 +286,58 @@ The macOS Chromium process required the permitted unsandboxed test invocation; P
 ### Fix commit
 
 `2ee51cb24e8f3f7027a0d4b949b5e8f7d745b4b9` — `fix: complete pre-publish learning and accessibility review`
+
+---
+
+## Browser-depth re-review fixes (2026-07-17)
+
+Findings 17–19 are resolved with real Chromium keyboard and responsive checks.
+
+### Focused RED evidence
+
+```bash
+npm run test:e2e
+```
+
+The new browser assertions first exposed these production failures:
+
+```text
+사건 처음부터: expected min-height 48px, received auto
+active 320px scenario: expected document scrollWidth <= 320, received 331
+```
+
+The latter came from the workbench's horizontal route layout squeezing a long direction explanation past the 320px document edge.
+
+### GREEN and full verification
+
+```bash
+npm run test:e2e
+# 2 passed in real Chromium
+
+npm run test:unit
+# 7 passed
+
+npm run lint
+# passed
+
+npm run build
+# passed
+
+npm test
+# 9 passed total: 7 domain tests and 2 rendered-output tests
+
+git diff --check
+# passed
+```
+
+### Fixes and browser proof
+
+- Applied the standard 48px `.button` sizing to `사건 처음부터`.
+- Made 320px workbench routes stack vertically, with shrinkable/wrapping direction text and consistent border-box sizing; the active workbench and small-screen card table now have no document-level horizontal overflow at 320px and 200% page scale.
+- Replaced action-under-test locator clicks/checks with actual keyboard navigation: Tab, Shift+Tab, Space, Enter, plus radio-group arrow navigation. The representative case reaches the workbench, preserves a revealed frame after Previous, checks a wrong final answer, then completes mode, evidence, and result record.
+- Verified newly revealed frame live text, reset-dialog cancel/confirm, and reset focus restoration.
+- Ran axe with zero violations on the guide, an active timeline scenario, and an open reset dialog; reduced-motion and forced-colors media queries are asserted as active with applied computed styles.
+
+### Fix commit
+
+`8d9db8fe31976b770d79f0912f78112db387a72a` — `fix: deepen browser accessibility coverage`
