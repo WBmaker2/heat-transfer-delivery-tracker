@@ -1,4 +1,4 @@
-import type { HeatTransferMode, ThermalScenario } from "./types";
+import { transferModeConcept, type HeatTransferMode, type ThermalScenario } from "./types.ts";
 
 export type FrameDirectionAnswer = {
   id: string;
@@ -24,12 +24,16 @@ export function areAcceptedFrameDirections(scenario: ThermalScenario, frameIndex
   return frameDirectionAnswers(scenario, frameIndex).every((answer) => choices[answer.id] === answer.direction);
 }
 
-export function revisionStatus(
-  prediction: string,
+export function areAcceptedFrameModes(scenario: ThermalScenario, frameIndex: number, choices: Record<string, string>): boolean {
+  return frameDirectionAnswers(scenario, frameIndex).every((answer) => choices[answer.id] === transferModeConcept(answer.mode));
+}
+
+export function frameComparisonStatus(
+  initialDirection: string,
   finalDirection: string,
-  predictionPathId: string,
+  initialPathId: string,
   finalPathId: string,
-): "유지함" | "수정함" | "조건이 바뀌어 새 경로를 확인함" {
-  if (predictionPathId !== finalPathId) return "조건이 바뀌어 새 경로를 확인함";
-  return prediction === finalDirection ? "유지함" : "수정함";
+): "예측 시점과 마지막 방향이 같음" | "시간이 지나 열 이동 방향이 바뀜" | "살펴보는 열 이동 경로가 바뀜" {
+  if (initialPathId !== finalPathId) return "살펴보는 열 이동 경로가 바뀜";
+  return initialDirection === finalDirection ? "예측 시점과 마지막 방향이 같음" : "시간이 지나 열 이동 방향이 바뀜";
 }

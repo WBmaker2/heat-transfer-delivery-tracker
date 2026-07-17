@@ -23,6 +23,6 @@ export function TemperatureChart({ scenario, revealedFrameIndex }: { scenario: T
       {bodies.map((body, bodyIndex) => { const points = frames.map((frame, index) => point(frame.temperaturesC[body.id], index)); return <g key={body.id}><polyline className={`series series-${bodyIndex}`} points={points.map(({ x, y }) => `${x},${y}`).join(" ")} />{points.map(({ x, y }, index) => <PointMark key={frames[index].timeStep} variant={bodyIndex} x={x} y={y} />)}</g>; })}
     </svg>
     <div className="legend">{bodies.map((body, index) => <span key={body.id} className={`legend-${index}`}>{body.label}</span>)}</div>
-    <p className="sr-only">그래프 아래 원자료 표에서 같은 숫자를 확인할 수 있어요.</p>
+    <p className="sr-only">그래프 아래 숫자 온도표에서 같은 숫자를 확인할 수 있어요.</p>
   </section>;
 }

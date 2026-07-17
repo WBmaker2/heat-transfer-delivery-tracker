@@ -28,29 +28,41 @@ async function enterTimelineWithKeyboard(page: Page) {
 }
 
 async function revealCurrentFrameWithKeyboard(page: Page) {
-  await activateWithKeyboard(page, page.getByLabel(/모든 온도 숫자와 화살표 설명/), "Space");
-  const next = page.getByRole("button", { name: "다음 시점 열기" });
+  await activateWithKeyboard(page, page.locator(".observation-panel input[type='checkbox']"), "Space");
+  const next = page.getByRole("button", { name: "다음 시간 단계 열기" });
   if (await next.isVisible()) await activateWithKeyboard(page, next, "Enter");
   else await activateWithKeyboard(page, page.getByRole("button", { name: "자료 추적 마치기" }), "Enter");
 }
 
 async function reachFinalReviewWithKeyboard(page: Page) {
-  const observation = page.getByLabel(/모든 온도 숫자와 화살표 설명/);
+  const observation = page.locator(".observation-panel input[type='checkbox']");
   for (let index = 0; index < 5 && await observation.isVisible(); index += 1) await revealCurrentFrameWithKeyboard(page);
 }
 
 test("keyboard-only learner flow reveals evidence, handles revision, and records a result", async ({ page }) => {
   await page.goto("/");
+  await page.getByLabel("20°C에서 50°C로").check();
+  await expect(page.getByRole("status")).toHaveText("50은 20보다 높아요. 열은 온도가 높은 쪽에서 낮은 쪽으로 이동해요.");
+  await page.getByLabel("50°C에서 20°C로").focus();
   await startScenarioWithKeyboard(page);
   await enterTimelineWithKeyboard(page);
-  await expect(page.getByRole("heading", { name: /시작의 온도와 알짜 방향/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /시작의 온도와 열이 가는 방향/ })).toBeVisible();
+  await expect(page.getByText("이번에 볼 것")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /온도가 높은 곳을 찾고/ })).toBeVisible();
+  await expect(page.getByLabel("온도 숫자를 비교하고, 화살표 방향도 확인했어요.")).toBeVisible();
+  expect(await page.locator(".scenario-flow").evaluate((flow) => {
+    const observation = flow.querySelector(".observation-panel");
+    const workbench = flow.querySelector(".workbench");
+    return Boolean(observation && workbench && (observation.compareDocumentPosition(workbench) & Node.DOCUMENT_POSITION_FOLLOWING));
+  })).toBe(true);
 
   await revealCurrentFrameWithKeyboard(page);
-  await expect(page.getByText("새 시점: 1단계 자료가 열렸어요.")).toHaveAttribute("aria-live", "polite");
+  await expect(page.getByText("새 시간 단계: 1단계 자료가 열렸어요.")).toHaveAttribute("aria-live", "polite");
+  await expect(page.getByRole("heading", { name: /각 온도가 올라갔는지/ })).toBeVisible();
   await activateWithKeyboard(page, page.getByRole("button", { name: "이전 단계로" }), "Enter");
   await expect(page.getByRole("heading", { name: "예측 단계" })).toBeFocused();
   await activateWithKeyboard(page, page.getByRole("button", { name: "예측 기록하기" }), "Enter");
-  await expect(page.getByRole("heading", { name: /1단계 자료를 읽었나요/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /각 온도가 올라갔는지/ })).toBeVisible();
 
   await reachFinalReviewWithKeyboard(page);
   await tabTo(page, page.getByLabel("한쪽 방향 없음"));
@@ -66,14 +78,32 @@ test("keyboard-only learner flow reveals evidence, handles revision, and records
   await page.keyboard.press("Space");
   await activateWithKeyboard(page, page.getByRole("button", { name: "방향 확인하기" }), "Enter");
   await expect(page.getByRole("heading", { name: "방식 단계" })).toBeFocused();
+  await expect(page.getByRole("status")).toHaveCount(0);
 
-  await activateWithKeyboard(page, page.getByLabel(/맞닿아 전달됨/), "Space");
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.getByLabel(/맞닿은 곳이나 고체를 따라 열이 가요/)).toBeVisible();
+  await expect(page.getByLabel(/액체나 기체가 움직이며 열을 나르는 것/)).toBeVisible();
+  await expect(page.getByLabel(/떨어져 있어도 열이 가요/)).toBeVisible();
+  await expect(page.getByLabel("여러 방식이 함께 일어나요")).toBeVisible();
+  await expect(page.getByRole("radio")).toHaveCount(4);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  await activateWithKeyboard(page, page.getByLabel(/맞닿은 곳이나 고체를 따라 열이 가요/), "Space");
   await activateWithKeyboard(page, page.getByRole("button", { name: "근거 고르기" }), "Enter");
   const evidenceInputs = page.locator(".evidence-card input");
   await activateWithKeyboard(page, evidenceInputs.nth(0), "Space");
   await activateWithKeyboard(page, evidenceInputs.nth(1), "Space");
   await activateWithKeyboard(page, page.getByRole("button", { name: "추적 기록 보기" }), "Enter");
-  await expect(page.getByRole("heading", { name: "열 이동 추적 기록" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "열이 어떻게 움직였는지 정리" })).toBeVisible();
+  await expect(page.getByText("내 처음 예측")).toBeVisible();
+  await expect(page.getByText("예측 시점의 방향")).toBeVisible();
+  await expect(page.getByText("마지막 자료의 방향")).toBeVisible();
+  await expect(page.getByText("예측 시점과 마지막 비교")).toBeVisible();
+  await expect(page.getByText("시간이 지나 열 이동 방향이 바뀜")).toBeVisible();
+  const resultAxe = await new AxeBuilder({ page }).analyze();
+  expect(resultAxe.violations).toEqual([]);
+  await page.getByRole("button", { name: "다음 사건으로" }).click();
+  await page.getByRole("button", { name: "시작 온도 확인했어요" }).click();
+  await expect(page.getByLabel("가상 물체에서 열원으로")).toBeVisible();
 });
 
 test("active scenario stays operable at 320px, 200 percent zoom, media modes, dialog, and axe", async ({ page }) => {
@@ -83,7 +113,7 @@ test("active scenario stays operable at 320px, 200 percent zoom, media modes, di
   expect(guideAxe.violations).toEqual([]);
   await startScenarioWithKeyboard(page);
   await enterTimelineWithKeyboard(page);
-  await expect(page.getByRole("heading", { name: /시작의 온도와 알짜 방향/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /시작의 온도와 열이 가는 방향/ })).toBeVisible();
   await expect(page.locator(".temperature-table-cards")).toBeVisible();
   await expect(page.getByRole("button", { name: "사건 처음부터" })).toHaveCSS("min-height", "48px");
   await expect(page.getByRole("button", { name: "사건 처음부터" })).toHaveJSProperty("offsetHeight", 48);
@@ -106,7 +136,7 @@ test("active scenario stays operable at 320px, 200 percent zoom, media modes, di
   await tabTo(page, page.getByRole("button", { name: "처음부터 보기" }));
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "사건 처음부터" })).toBeFocused();
-  await expect(page.getByRole("heading", { name: "배달 조건표를 확인해요" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "시작 조건표를 확인해요" })).toBeVisible();
 
   await enterTimelineWithKeyboard(page);
   const activeAxe = await new AxeBuilder({ page }).analyze();
@@ -146,7 +176,7 @@ test("mobile workbench keeps both thermal cards and the current stage readable",
   await expect(thermalCards).toHaveCount(2);
   await expect(thermalCards.nth(0)).toContainText("가상 고체 A");
   await expect(thermalCards.nth(1)).toContainText("가상 고체 B");
-  await expect(direction).toContainText("알짜 이동");
+  await expect(direction).toContainText("열이 가요");
 
   const layout = await route.evaluate((element) => {
     const row = element.querySelector<HTMLElement>(".body-row")!;

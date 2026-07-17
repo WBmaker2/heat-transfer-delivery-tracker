@@ -5,6 +5,8 @@ export type HeatTransferMode =
   | "radiation"
   | "mixed";
 
+export type HeatTransferConcept = "conduction" | "convection" | "radiation" | "mixed";
+
 export type NetDirection = "forward" | "none";
 
 export type ThermalBody = {
@@ -55,9 +57,22 @@ export type ThermalScenario = {
 };
 
 export const modeLabels: Record<HeatTransferMode, string> = {
-  "contact-conduction": "맞닿아 전달됨(전도)",
-  "solid-conduction": "고체를 따라 전달됨(전도)",
-  "fluid-convection": "액체가 움직이며 전달됨(대류)",
-  radiation: "떨어져 전달됨(복사)",
-  mixed: "주변으로 여러 방식으로 이동",
+  "contact-conduction": "맞닿은 곳으로 열이 가요 (전도)",
+  "solid-conduction": "고체를 따라 열이 가요 (전도)",
+  "fluid-convection": "액체나 기체가 움직이며 열을 나르는 것 (대류)",
+  radiation: "떨어져 있어도 열이 가요 (복사)",
+  mixed: "여러 방식이 함께 일어나요",
 };
+
+export const modeChoiceLabels: Record<HeatTransferConcept, string> = {
+  conduction: "맞닿은 곳이나 고체를 따라 열이 가요 (전도)",
+  convection: "액체나 기체가 움직이며 열을 나르는 것 (대류)",
+  radiation: "떨어져 있어도 열이 가요 (복사)",
+  mixed: "여러 방식이 함께 일어나요",
+};
+
+export function transferModeConcept(mode: HeatTransferMode): HeatTransferConcept {
+  if (mode === "contact-conduction" || mode === "solid-conduction") return "conduction";
+  if (mode === "fluid-convection") return "convection";
+  return mode;
+}
