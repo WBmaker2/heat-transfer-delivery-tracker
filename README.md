@@ -18,6 +18,16 @@ npm run build
 
 Cloudflare Worker 호환 ESM으로 빌드됩니다.
 
+## GitHub Pages
+
+이 프로젝트는 고정된 학습 자료와 브라우저 상태만 사용하는 정적 앱으로
+GitHub Pages에서도 사용할 수 있습니다.
+
+- `npm run build:pages`: GitHub Pages용 정적 사이트 빌드
+- 공개 주소: https://wbmaker2.github.io/heat-transfer-delivery-tracker/
+- 배포 방식: `.github/workflows/deploy-pages.yml`
+- 정적 진입점: `pages/index.html`
+
 ## 개인정보와 안전
 
 로그인, 이름 입력, 브라우저 저장, 센서 권한, 외부 API, 추적 도구를 사용하지 않습니다. 실제 열 실험은 교사가 안전 온도와 절차를 확인한 뒤 별도로 진행해야 합니다.
