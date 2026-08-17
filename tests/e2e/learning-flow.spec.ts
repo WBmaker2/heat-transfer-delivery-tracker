@@ -17,7 +17,9 @@ async function activateWithKeyboard(page: Page, target: Locator, key: "Space" | 
 async function startScenarioWithKeyboard(page: Page) {
   await activateWithKeyboard(page, page.getByLabel("50°C에서 20°C로"), "Space");
   await activateWithKeyboard(page, page.getByLabel(/이 안내를 읽었어요/), "Space");
-  await activateWithKeyboard(page, page.getByRole("button", { name: "첫 사건 시작하기" }), "Enter");
+  const startButton = page.getByRole("button", { name: "첫 사건 시작하기" });
+  await expect(startButton).toHaveClass(/gi-pulse/);
+  await activateWithKeyboard(page, startButton, "Enter");
   await expect(page.getByRole("heading", { name: "조건 단계" })).toBeFocused();
 }
 
@@ -30,8 +32,14 @@ async function enterTimelineWithKeyboard(page: Page) {
 async function revealCurrentFrameWithKeyboard(page: Page) {
   await activateWithKeyboard(page, page.locator(".observation-panel input[type='checkbox']"), "Space");
   const next = page.getByRole("button", { name: "다음 시간 단계 열기" });
-  if (await next.isVisible()) await activateWithKeyboard(page, next, "Enter");
-  else await activateWithKeyboard(page, page.getByRole("button", { name: "자료 추적 마치기" }), "Enter");
+  if (await next.isVisible()) {
+    await expect(next).toHaveClass(/gi-pulse/);
+    await activateWithKeyboard(page, next, "Enter");
+  } else {
+    const finishTracking = page.getByRole("button", { name: "자료 추적 마치기" });
+    await expect(finishTracking).toHaveClass(/gi-pulse/);
+    await activateWithKeyboard(page, finishTracking, "Enter");
+  }
 }
 
 async function reachFinalReviewWithKeyboard(page: Page) {

@@ -29,7 +29,7 @@ export function ModelGuide({ onComplete }: { onComplete: () => void }) {
         <div className="model-notes">{modelNotes.slice(2).map((note) => <p key={note}>• {note}</p>)}</div>
       </details>
       <label className="check-row"><input type="checkbox" checked={notesChecked} onChange={(event) => setNotesChecked(event.target.checked)} /> 이 안내를 읽었어요. 화살표는 열이 전체적으로 가는 방향이에요.</label>
-      <button type="button" className="button primary" disabled={!ready} onClick={onComplete}>첫 사건 시작하기</button>
+      <button type="button" className={`button primary${ready ? " gi-pulse" : ""}`} disabled={!ready} onClick={onComplete}>첫 사건 시작하기</button>
       {!ready && <p className="hint">방향과 안내 확인을 마치면 시작할 수 있어요.</p>}
     </section>
   );
