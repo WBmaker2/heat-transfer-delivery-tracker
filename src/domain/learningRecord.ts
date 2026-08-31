@@ -28,6 +28,12 @@ export function areAcceptedFrameModes(scenario: ThermalScenario, frameIndex: num
   return frameDirectionAnswers(scenario, frameIndex).every((answer) => choices[answer.id] === transferModeConcept(answer.mode));
 }
 
+export function areExactlyRequiredEvidenceSelected(scenario: ThermalScenario, selectedIds: readonly string[]): boolean {
+  const selected = new Set(selectedIds);
+  const required = new Set(scenario.requiredEvidenceIds);
+  return selected.size === required.size && [...selected].every((id) => required.has(id));
+}
+
 export function frameComparisonStatus(
   initialDirection: string,
   finalDirection: string,

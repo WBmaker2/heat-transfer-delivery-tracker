@@ -29,13 +29,13 @@ main { width:min(1040px,calc(100% - 32px)); margin:32px auto 56px; flex:1; } h1,
 .progress-step.complete { color:#1d6948; border-color:#75b995; background:#f0f8f3; }
 .progress-step.complete .progress-step-number { color:#fff; background:#287543; }
 .progress-step.current { color:var(--navy); border:2px solid var(--blue); background:var(--sky); }
-.progress-step.current .progress-step-number { color:#fff; background:var(--blue); }
+.progress-step.current .progress-step-number { color:#fff; background:var(--blue); }.progress-hint { display:none; margin:7px 0 0; color:var(--muted); font-size:13px; }.observation-order { margin:0; padding:9px 12px; color:var(--muted); background:#f5fbfd; border-left:4px solid var(--blue); font-size:15px; font-weight:700; }
 .reset-button { flex:0 0 auto; }
 .model-notes-essential { margin-bottom:0; }
 .model-notes-more { border:1px solid var(--line); background:#fff; }
 .model-notes-more summary { display:flex; align-items:center; min-height:44px; padding:10px 16px; color:var(--navy); font-weight:800; cursor:pointer; }
 .model-notes-more .model-notes { margin:0; border-top:1px solid var(--line); }
-.chart-panel svg { min-height:0; height:auto; aspect-ratio:16 / 7; font-size:4.5px; }
+.chart-panel svg { min-height:0; height:auto; aspect-ratio:16 / 7; font-size:4.5px; }.chart-title h2 { white-space:nowrap; }
 
 @media (max-width:700px) {
   .app-header { gap:9px; padding-block:10px; }
@@ -53,8 +53,12 @@ main { width:min(1040px,calc(100% - 32px)); margin:32px auto 56px; flex:1; } h1,
   .scenario-controls { flex-direction:column; }
   .progress-tracker { width:100%; }
   .progress-line { width:100%; }
+  .progress-hint { display:block; }
   .reset-button { width:100%; height:48px; min-height:48px; }
   .chart-panel svg { aspect-ratio:16 / 8; }
+  .chart-panel .panel-title { display:block; }
+  .chart-panel .chart-range { display:block; margin-top:4px; }
+  .chart-title h2 { font-size:clamp(20px,7vw,30px); }
 }
 
 .mode-help { margin-bottom:18px; border:1px solid var(--line); background:#f5fbfd; }

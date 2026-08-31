@@ -13,6 +13,7 @@ import {
 import {
   areAcceptedFrameDirections,
   areAcceptedFrameModes,
+  areExactlyRequiredEvidenceSelected,
   frameComparisonStatus,
   frameDirectionAnswers,
 } from "../src/domain/learningRecord.ts";
@@ -78,15 +79,22 @@ test("frame comparison uses catalog directions and describes changed routes with
 
 test("starting observation prompts match each scenario's first-frame arrows", () => {
   const expectedPrompts = {
-    "contact-lockers": "온도가 높은 곳을 찾고, 열이 한쪽으로 가는 화살표가 있는지 보세요.",
-    "source-switch": "같은 온도를 찾고, 열이 한쪽으로 가는 화살표가 없는지 보세요.",
-    "solid-bridge": "같은 온도를 찾고, 열이 한쪽으로 가는 화살표가 없는지 보세요.",
-    "liquid-cycle": "같은 온도를 찾고, 열이 한쪽으로 가는 화살표가 없는지 보세요.",
-    "final-audit": "온도가 높은 곳을 찾고, 열이 한쪽으로 가는 화살표가 있는지 보세요.",
+    "contact-lockers": "온도 숫자를 먼저 비교해요. 그다음 화살표를 찾아요.",
+    "source-switch": "같은 온도를 찾아요. 한쪽 화살표가 없는지 확인해요.",
+    "solid-bridge": "같은 온도를 찾아요. 한쪽 화살표가 없는지 확인해요.",
+    "liquid-cycle": "같은 온도를 찾아요. 한쪽 화살표가 없는지 확인해요.",
+    "final-audit": "온도 숫자를 먼저 비교해요. 그다음 화살표를 찾아요.",
   } as const;
   for (const scenario of scenarios) assert.equal(observationPrompt(scenario, 0), expectedPrompts[scenario.id as keyof typeof expectedPrompts]);
-  assert.equal(observationPrompt(scenarios[0], 1), "바로 전 시간 단계와 비교해, 각 온도가 올라갔는지, 내려갔는지, 그대로인지 찾아보세요.");
-  assert.equal(observationCheckLabel(0), "온도 숫자를 비교하고, 화살표 방향도 확인했어요.");
+  assert.equal(observationPrompt(scenarios[0], 1), "전 단계와 온도를 비교해요. 올라감·내려감·그대로 중 하나를 찾아요.");
+  assert.equal(observationCheckLabel(0), "온도 변화와 화살표를 확인했어요.");
+});
+
+test("evidence selection accepts only the exact required cards", () => {
+  const contact = scenarios[0];
+  assert.equal(areExactlyRequiredEvidenceSelected(contact, ["temperature-gap"]), false);
+  assert.equal(areExactlyRequiredEvidenceSelected(contact, ["temperature-gap", "fluid"]), false);
+  assert.equal(areExactlyRequiredEvidenceSelected(contact, ["temperature-gap", "contact"]), true);
 });
 
 test("both contact and solid conduction use one student-facing conduction choice", () => {

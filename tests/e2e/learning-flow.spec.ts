@@ -62,8 +62,9 @@ test("keyboard-only learner flow reveals evidence, handles revision, and records
   await enterTimelineWithKeyboard(page);
   await expect(page.getByRole("heading", { name: /시작의 온도와 열이 가는 방향/ })).toBeVisible();
   await expect(page.getByText("이번에 볼 것")).toBeVisible();
-  await expect(page.getByRole("heading", { name: /온도가 높은 곳을 찾고/ })).toBeVisible();
-  await expect(page.getByLabel("온도 숫자를 비교하고, 화살표 방향도 확인했어요.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /온도 숫자를 먼저 비교해요/ })).toBeVisible();
+  await expect(page.getByLabel("온도 변화와 화살표를 확인했어요.")).toBeVisible();
+  await expect(page.getByText("순서: 자료 읽기 → 이 상자 체크 → 다음 단계 열기")).toBeVisible();
   expect(await page.locator(".scenario-flow").evaluate((flow) => {
     const observation = flow.querySelector(".observation-panel");
     const workbench = flow.querySelector(".workbench");
@@ -72,11 +73,11 @@ test("keyboard-only learner flow reveals evidence, handles revision, and records
 
   await revealCurrentFrameWithKeyboard(page);
   await expect(page.getByText("새 시간 단계: 1단계 자료가 열렸어요.")).toHaveAttribute("aria-live", "polite");
-  await expect(page.getByRole("heading", { name: /각 온도가 올라갔는지/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /전 단계와 온도를 비교해요/ })).toBeVisible();
   await activateWithKeyboard(page, page.getByRole("button", { name: "이전 단계로" }), "Enter");
   await expect(page.getByRole("heading", { name: "예측 단계" })).toBeFocused();
   await activateWithKeyboard(page, page.getByRole("button", { name: "예측 기록하기" }), "Enter");
-  await expect(page.getByRole("heading", { name: /각 온도가 올라갔는지/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /전 단계와 온도를 비교해요/ })).toBeVisible();
 
   await reachFinalReviewWithKeyboard(page);
   await tabTo(page, page.getByLabel("한쪽 방향 없음"));
@@ -104,8 +105,13 @@ test("keyboard-only learner flow reveals evidence, handles revision, and records
   await activateWithKeyboard(page, page.getByLabel(/맞닿은 곳이나 고체를 따라 열이 가요/), "Space");
   await activateWithKeyboard(page, page.getByRole("button", { name: "근거 고르기" }), "Enter");
   const evidenceInputs = page.locator(".evidence-card input");
+  await activateWithKeyboard(page, evidenceInputs.nth(2), "Space");
+  await expect(page.getByRole("button", { name: "추적 기록 보기" })).toBeDisabled();
+  await expect(page.getByRole("status")).toContainText("맞지 않는 카드는 다시 눌러 빼 주세요.");
+  await activateWithKeyboard(page, evidenceInputs.nth(2), "Space");
   await activateWithKeyboard(page, evidenceInputs.nth(0), "Space");
   await activateWithKeyboard(page, evidenceInputs.nth(1), "Space");
+  await expect(page.getByRole("button", { name: "추적 기록 보기" })).toHaveClass(/gi-pulse/);
   await activateWithKeyboard(page, page.getByRole("button", { name: "추적 기록 보기" }), "Enter");
   await expect(page.getByRole("heading", { name: "열이 어떻게 움직였는지 정리" })).toBeVisible();
   await expect(page.getByText("내 처음 예측")).toBeVisible();
@@ -113,6 +119,10 @@ test("keyboard-only learner flow reveals evidence, handles revision, and records
   await expect(page.getByText("마지막 자료의 방향")).toBeVisible();
   await expect(page.getByText("예측 시점과 마지막 비교")).toBeVisible();
   await expect(page.getByText("시간이 지나 열 이동 방향이 바뀜")).toBeVisible();
+  const reason = page.locator("dt", { hasText: "까닭" }).locator("..").locator("dd");
+  await expect(reason).toContainText("온도 차");
+  await expect(reason).toContainText("맞닿은 곳");
+  await expect(reason).not.toContainText("액체·기체");
   const resultAxe = await new AxeBuilder({ page }).analyze();
   expect(resultAxe.violations).toEqual([]);
   await page.getByRole("button", { name: "다음 사건으로" }).click();
@@ -129,6 +139,8 @@ test("active scenario stays operable at 320px, 200 percent zoom, media modes, di
   await enterTimelineWithKeyboard(page);
   await expect(page.getByRole("heading", { name: /시작의 온도와 열이 가는 방향/ })).toBeVisible();
   await expect(page.locator(".temperature-table-cards")).toBeVisible();
+  await expect(page.getByText("옆으로 밀어 다음 단계도 볼 수 있어요.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "온도 변화 그래프" })).toHaveCSS("white-space", "nowrap");
   await expect(page.getByRole("button", { name: "사건 처음부터" })).toHaveCSS("min-height", "48px");
   await expect(page.getByRole("button", { name: "사건 처음부터" })).toHaveJSProperty("offsetHeight", 48);
   let dimensions = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
